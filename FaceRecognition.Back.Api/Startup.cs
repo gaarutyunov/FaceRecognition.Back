@@ -1,34 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using FaceRecognition.Back.Api.Contexts;
 using FaceRecognition.Back.Api.Extensions;
+using FaceRecognition.Back.Api.Hubs;
 using FaceRecognition.Back.Api.Interfaces;
 using FaceRecognition.Back.Api.MiddleWares;
-using FaceRecognition.Back.Api.Models;
 using FaceRecognition.Back.Api.Profiles;
 using FaceRecognition.Back.Api.Services;
 using FaceRecognition.Back.Api.StartupJobs;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
 
 namespace FaceRecognition.Back.Api
 {
@@ -48,9 +33,11 @@ namespace FaceRecognition.Back.Api
             services.AddCors();
 
             services.AddJwt(Configuration);
+            services.AddSignalR();
 
             services.AddAutoMapper(typeof(DomainToDtoProfile));
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IQrService, QrService>();
             services.AddTransient<IStartupJob, EnsureDbData>();
 
             services.AddSwaggerGen(c =>
@@ -95,7 +82,11 @@ namespace FaceRecognition.Back.Api
                 startupJob.Invoke(scope.ServiceProvider);
             }
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHub<QrHub>("qrHub");
+            });
         }
     }
 }
