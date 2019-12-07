@@ -34,7 +34,7 @@ namespace FaceRecognition.Back.Api.Controllers
         [AllowAnonymous]
         [ValidateModel]
         [HttpPost]
-        public async Task<ActionResult> Register([FromBody] CreateUserDto dto)
+        public async Task<ActionResult<UserResponse>> Register([FromBody] CreateUserDto dto)
         {
             var user = await _userService.Register(dto);
 

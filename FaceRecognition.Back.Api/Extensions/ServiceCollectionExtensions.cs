@@ -15,7 +15,7 @@ namespace FaceRecognition.Back.Api.Extensions
             services.Configure<AppSettings>(appSettingsSection);
             var appSettings = appSettingsSection.Get<AppSettings>();
             var key = Encoding.UTF8.GetBytes(appSettings.Secret);
-            
+
             services.AddAuthentication(x =>
                 {
                     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -34,6 +34,28 @@ namespace FaceRecognition.Back.Api.Extensions
                     };
                 });
 
+            return services;
+        }
+        
+        public static IServiceCollection AddAppCors(this IServiceCollection services, IConfiguration configuration)
+        {
+            var corsSettingsSection = configuration.GetSection("CorsSettings");
+            services.Configure<CorsSettings>(corsSettingsSection);
+            var corsSettings = corsSettingsSection.Get<CorsSettings>();
+            services.AddCors(options =>
+            {
+                foreach (var (key, value) in corsSettings.Policies)
+                {
+                    options.AddPolicy(key, builder =>
+                    {
+                        builder.WithHeaders(value.Headers)
+                            .WithMethods(value.Methods)
+                            .WithOrigins(value.Origins);
+
+                        if (value.AllowCredentials) builder.AllowCredentials();
+                    });
+                }
+            });
             return services;
         }
     }

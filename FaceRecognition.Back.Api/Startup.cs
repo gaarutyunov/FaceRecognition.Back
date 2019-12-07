@@ -30,7 +30,7 @@ namespace FaceRecognition.Back.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddCors();
+            services.AddAppCors(Configuration);
 
             services.AddJwt(Configuration);
             services.AddSignalR();
@@ -57,12 +57,7 @@ namespace FaceRecognition.Back.Api
         {
             app.UseRouting();
 
-            app.UseCors(x =>
-            {
-                x.AllowAnyHeader();
-                x.AllowAnyOrigin();
-                x.AllowAnyMethod();
-            });
+            app.UseDefaultCors(Configuration);
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
