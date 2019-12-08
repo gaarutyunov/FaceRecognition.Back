@@ -33,10 +33,11 @@ namespace FaceRecognition.Back.Api
             services.AddAppCors(Configuration);
 
             services.AddJwt(Configuration);
-            services.AddSignalR();
+            services.AddSignalR().AddHubOptions<QrHub>(x => x.EnableDetailedErrors = true);
 
             services.AddAutoMapper(typeof(DomainToDtoProfile));
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<IQrService, QrService>();
             services.AddTransient<IStartupJob, EnsureDbData>();
 
@@ -80,7 +81,7 @@ namespace FaceRecognition.Back.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<QrHub>("qrHub");
+                endpoints.MapHub<QrHub>("/qrHub");
             });
         }
     }

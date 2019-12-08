@@ -18,11 +18,16 @@ namespace FaceRecognition.Back.Api.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger _logger;
+        private readonly IFileService _fileService;
 
-        public UserService(ApplicationDbContext context, ILogger<IUserService> logger)
+        public UserService(
+            ApplicationDbContext context,
+            ILogger<IUserService> logger,
+            IFileService fileService)
         {
             _context = context;
             _logger = logger;
+            _fileService = fileService;
         }
 
         public async Task<UserResponse> Register(CreateUserDto createUserDto)
@@ -31,9 +36,11 @@ namespace FaceRecognition.Back.Api.Services
             var userExists = await context.Users.AnyAsync(x => x.Login == createUserDto.Login);
 
             if (userExists) throw new AlreadyExistsException(EntityType.USER);
-            
+
+            var userId = Guid.NewGuid();
             var user = new User
             {
+                Id = userId,
                 Login = createUserDto.Login
             };
             
@@ -42,8 +49,11 @@ namespace FaceRecognition.Back.Api.Services
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
                 
-            await context.Users.AddAsync(user);
+            await context.Users!.AddAsync(user);
             await context.SaveChangesAsync();
+
+            var fileId = await _fileService.WriteFileAsync(userId, createUserDto.File);
+            await _fileService.SaveFileAsync(userId, fileId);
             
             _logger.LogInformation($"User registered {user.Login}");
 

@@ -4,6 +4,6 @@ namespace FaceRecognition.Back.Api.Interfaces
 {
     public interface IQrClient
     {
-        Task GenerateQrUrl(string url);
+        Task GeneratedQrUrl(string url);
     }
 }

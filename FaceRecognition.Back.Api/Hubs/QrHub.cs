@@ -16,7 +16,7 @@ namespace FaceRecognition.Back.Api.Hubs
         public async Task GenerateQrUrl(string url)
         {
             var qrUrl = _qrService.GenerateQrUrl(url);
-            await Clients.Caller.GenerateQrUrl(qrUrl);
+            await Clients.Caller.GeneratedQrUrl(qrUrl);
         }
     }
 }

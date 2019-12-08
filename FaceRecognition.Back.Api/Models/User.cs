@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace FaceRecognition.Back.Api.Models
 {
@@ -10,5 +11,7 @@ namespace FaceRecognition.Back.Api.Models
         public string? Login { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
+
+        public ICollection<File>? Files { get; set; }
     }
 }
