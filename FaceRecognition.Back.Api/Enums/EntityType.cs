@@ -5,6 +5,7 @@ namespace FaceRecognition.Back.Api.Enums
         NONE,
         USER,
         DEFAULT,
-        FOLDER
+        FOLDER,
+        FILE
     }
 }

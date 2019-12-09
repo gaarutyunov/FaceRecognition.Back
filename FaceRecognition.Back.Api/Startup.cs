@@ -39,7 +39,7 @@ namespace FaceRecognition.Back.Api
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IQrService, QrService>();
-            services.AddScoped<IFaceRecognitionService, FaceRecognitionService>();
+            services.AddSingleton<IFaceRecognitionService, FaceRecognitionService>();
             services.AddTransient<IStartupJob, EnsureDbData>();
 
             services.AddSwaggerGen(c =>
@@ -78,6 +78,8 @@ namespace FaceRecognition.Back.Api
                 using var scope = app.ApplicationServices.CreateScope();
                 startupJob.Invoke(scope.ServiceProvider);
             }
+            
+            app.ApplicationServices.GetService<IFaceRecognitionService>().Initialize();
 
             app.UseEndpoints(endpoints =>
             {

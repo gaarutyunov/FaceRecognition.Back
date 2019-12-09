@@ -61,14 +61,14 @@ namespace FaceRecognition.Back.Api.Services
             };
         }
 
-        public async Task<string> ReadFileAsync(Guid userId, File file)
+        public async Task<string> ReadFileAsync(File file)
         {
-            var userFolder = Path.Combine(IMAGE_DIRECTORY, userId.ToString());
+            var userFolder = Path.Combine(IMAGE_DIRECTORY, file.UserId.ToString());
             if (!Directory.Exists(userFolder)) throw new NotFoundException(EntityType.FOLDER);
 
             var filePath = Path.Combine(
                 IMAGE_DIRECTORY,
-                userId.ToString(),
+                file.UserId.ToString(),
                 $"{file.Id}.{MimeTypeDictionary.GetType(file.MimeType)}");
             
             await using var sourceStream = new FileStream(

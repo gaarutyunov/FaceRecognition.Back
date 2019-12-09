@@ -7,6 +7,6 @@ namespace FaceRecognition.Back.Api.Interfaces
     public interface IUserService
     {
         Task<UserResponse> Register(CreateUserDto dto);
-        Task<UserResponse> Login(LoginUserDto dto);
+        Task<LoginResponse> Login(LoginUserDto dto);
     }
 }

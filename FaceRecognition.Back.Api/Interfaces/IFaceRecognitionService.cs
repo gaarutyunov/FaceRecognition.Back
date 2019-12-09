@@ -4,6 +4,7 @@ namespace FaceRecognition.Back.Api.Interfaces
 {
     public interface IFaceRecognitionService
     {
-        bool CompareFaces(byte[] savedImage, byte[] imageToCheck);
+        bool CompareFaces(string savedImage, string imageToCheck);
+        void Initialize();
     }
 }

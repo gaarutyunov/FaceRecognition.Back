@@ -23,12 +23,18 @@ namespace FaceRecognition.Back.Api.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
+        private readonly IFaceRecognitionService _faceRecognitionService;
 
-        public UserController(IUserService userService, IMapper mapper, IOptions<AppSettings> appSettings)
+        public UserController(
+            IUserService userService,
+            IMapper mapper,
+            IOptions<AppSettings> appSettings,
+            IFaceRecognitionService faceRecognitionService)
         {
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
+            _faceRecognitionService = faceRecognitionService;
         }
 
         [AllowAnonymous]
@@ -47,6 +53,12 @@ namespace FaceRecognition.Back.Api.Controllers
         public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginUserDto dto)
         {
             var user = await _userService.Login(dto);
+            
+            var areEqual = _faceRecognitionService.CompareFaces(
+                user.FilePath,
+                user.FileToCheckPath);
+
+            if (!areEqual) throw new ArgumentException(nameof(dto.File));
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);

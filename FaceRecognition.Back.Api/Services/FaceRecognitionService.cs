@@ -11,7 +11,7 @@ namespace FaceRecognition.Back.Api.Services
 {
     public class FaceRecognitionService : IFaceRecognitionService
     {
-        private FaceRecognitionDotNet.FaceRecognition _faceRecognition;
+        private FaceRecognitionDotNet.FaceRecognition? _faceRecognition;
         private readonly ILogger _logger;
         private const string MODEL_DIRECTORY = "FRModels";
         private const string MODEL_BASE_URL = "https://github.com/ageitgey/face_recognition_models/raw/master/face_recognition_models/models";
@@ -19,10 +19,9 @@ namespace FaceRecognition.Back.Api.Services
         public FaceRecognitionService(ILogger<FaceRecognitionService> logger)
         {
             _logger = logger;
-            Initialize();
         }
 
-        private void Initialize()
+        public void Initialize()
         {
             var faceRecognition = typeof(FaceRecognitionDotNet.FaceRecognition);
             var type = faceRecognition.Assembly.GetTypes().FirstOrDefault(t => t.Name == "FaceRecognitionModels");
@@ -34,11 +33,11 @@ namespace FaceRecognition.Back.Api.Services
             
             foreach (var method in methods)
             {
-                // Skip helen
+//                 Skip helen
                 if (method.Name == "GetPosePredictor194PointModelLocation")
                     continue;
 
-                var result = method.Invoke(null, BindingFlags.Public | BindingFlags.Static, null, null, null) as string;
+                var result = method!.Invoke(null, BindingFlags.Public | BindingFlags.Static, null, null, null) as string;
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     _logger.LogError($"{method.Name} does not return {typeof(string).FullName} value or return null or whitespace value.");
@@ -58,19 +57,18 @@ namespace FaceRecognition.Back.Api.Services
                 
                 foreach (var model in models)
                     ModelFiles.Add(model);
-                
-                
-                _faceRecognition = FaceRecognitionDotNet.FaceRecognition.Create(MODEL_DIRECTORY);
             }
+            
+            _faceRecognition = FaceRecognitionDotNet.FaceRecognition.Create(MODEL_DIRECTORY);
         }
 
-        public bool CompareFaces(byte[] savedImage, byte[] imageToCheck)
+        public bool CompareFaces(string savedImage, string imageToCheck)
         {
-            using var image1 = FaceRecognitionDotNet.FaceRecognition.LoadImage(savedImage, 0, 0, 3);
-            using var image2 = FaceRecognitionDotNet.FaceRecognition.LoadImage(imageToCheck, 0, 0, 3);
+            using var image1 = FaceRecognitionDotNet.FaceRecognition.LoadImageFile(savedImage);
+            using var image2 = FaceRecognitionDotNet.FaceRecognition.LoadImageFile(imageToCheck);
 
-            var encodings1 = _faceRecognition.FaceEncodings(image1).ToArray();
-            var encodings2 = _faceRecognition.FaceEncodings(image2).ToArray();
+            var encodings1 = _faceRecognition!.FaceEncodings(image1).ToArray();
+            var encodings2 = _faceRecognition!.FaceEncodings(image2).ToArray();
 
             var areEqual = false;
             

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using FaceRecognition.Back.Api.Contexts;
 using FaceRecognition.Back.Api.Dtos;
 using FaceRecognition.Back.Api.Enums;
 using FaceRecognition.Back.Api.Exceptions;
+using FaceRecognition.Back.Api.Extensions;
 using FaceRecognition.Back.Api.Interfaces;
 using FaceRecognition.Back.Api.Models;
 using FaceRecognition.Back.Api.Responses;
@@ -19,13 +21,11 @@ namespace FaceRecognition.Back.Api.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger _logger;
         private readonly IFileService _fileService;
-        private readonly IFace
 
         public UserService(
             ApplicationDbContext context,
             ILogger<IUserService> logger,
-            IFileService fileService,
-            IFaceRecognitionService faceRecognitionService)
+            IFileService fileService)
         {
             _context = context;
             _logger = logger;
@@ -70,22 +70,30 @@ namespace FaceRecognition.Back.Api.Services
             };
         }
 
-        public async Task<UserResponse> Login(LoginUserDto dto)
+        public async Task<LoginResponse> Login(LoginUserDto dto)
         {
             if (dto.Login == null) throw new ArgumentNullException(nameof(dto.Login));
             if (dto.Password == null) throw new ArgumentNullException(nameof(dto.Password));
+            if (dto.File == null) throw new ArgumentNullException(nameof(dto.File));
+            
             await using var context = _context;
             var user = await context.Users.FirstOrDefaultAsync(x => x.Login == dto.Login);
 
             if (user == null) throw new NotFoundException(EntityType.USER);
             if (!VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt)) throw new AuthorizationException(ExceptionSubType.PASSWORD_INCORRECT);
-            
-            
 
-            return new UserResponse
+            var file = await context.Files.FirstOrDefaultAsync(x => x.UserId == user.Id);
+            if (file == null) throw new NotFoundException(EntityType.FILE);
+            var res = _fileService.WriteFileAsync(user.Id, dto.File).Result;
+
+            var fileToCheck = res;
+
+            return new LoginResponse
             {
                 Id = user.Id,
-                Login = user.Login
+                Login = user.Login,
+                FilePath = Path.Combine("Images", file.GetPath),
+                FileToCheckPath = Path.Combine("Images", fileToCheck.GetPath)
             };
         }
 
