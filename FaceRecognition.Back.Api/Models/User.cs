@@ -13,5 +13,11 @@ namespace FaceRecognition.Back.Api.Models
         public byte[] PasswordSalt { get; set; }
 
         public ICollection<File>? Files { get; set; }
+
+        public User()
+        {
+            PasswordHash = new byte[0];
+            PasswordSalt = new byte[0];
+        }
     }
 }

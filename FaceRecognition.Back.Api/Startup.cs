@@ -39,6 +39,7 @@ namespace FaceRecognition.Back.Api
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IQrService, QrService>();
+            services.AddScoped<IFaceRecognitionService, FaceRecognitionService>();
             services.AddTransient<IStartupJob, EnsureDbData>();
 
             services.AddSwaggerGen(c =>

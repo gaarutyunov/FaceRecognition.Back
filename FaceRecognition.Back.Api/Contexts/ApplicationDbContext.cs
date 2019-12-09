@@ -15,8 +15,8 @@ namespace FaceRecognition.Back.Api.Contexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<File>()
-                .HasOne(x => x.User)
-                .WithMany(x => x.Files)
+                .HasOne(x => x.User!)
+                .WithMany(x => x.Files!)
                 .HasForeignKey(x => x.UserId);
         }
     }

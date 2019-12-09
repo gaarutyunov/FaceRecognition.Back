@@ -19,21 +19,27 @@ namespace FaceRecognition.Back.Api.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger _logger;
         private readonly IFileService _fileService;
+        private readonly IFace
 
         public UserService(
             ApplicationDbContext context,
             ILogger<IUserService> logger,
-            IFileService fileService)
+            IFileService fileService,
+            IFaceRecognitionService faceRecognitionService)
         {
             _context = context;
             _logger = logger;
             _fileService = fileService;
         }
 
-        public async Task<UserResponse> Register(CreateUserDto createUserDto)
+        public async Task<UserResponse> Register(CreateUserDto dto)
         {
+            if (dto.Login == null) throw new ArgumentNullException(nameof(dto.Login));
+            if (dto.Password == null) throw new ArgumentNullException(nameof(dto.Password));
+            if (dto.File == null) throw new ArgumentNullException(nameof(dto.File));
+            
             await using var context = _context;
-            var userExists = await context.Users.AnyAsync(x => x.Login == createUserDto.Login);
+            var userExists = await context.Users.AnyAsync(x => x.Login == dto.Login);
 
             if (userExists) throw new AlreadyExistsException(EntityType.USER);
 
@@ -41,10 +47,10 @@ namespace FaceRecognition.Back.Api.Services
             var user = new User
             {
                 Id = userId,
-                Login = createUserDto.Login
+                Login = dto.Login
             };
             
-            CreatePasswordHash(createUserDto.Password, out var passwordHash, out var passwordSalt);
+            CreatePasswordHash(dto.Password, out var passwordHash, out var passwordSalt);
 
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
@@ -52,8 +58,8 @@ namespace FaceRecognition.Back.Api.Services
             await context.Users!.AddAsync(user);
             await context.SaveChangesAsync();
 
-            var fileId = await _fileService.WriteFileAsync(userId, createUserDto.File);
-            await _fileService.SaveFileAsync(userId, fileId);
+            var file = await _fileService.WriteFileAsync(userId, dto.File);
+            await _fileService.SaveFileAsync(file);
             
             _logger.LogInformation($"User registered {user.Login}");
 
@@ -66,11 +72,15 @@ namespace FaceRecognition.Back.Api.Services
 
         public async Task<UserResponse> Login(LoginUserDto dto)
         {
+            if (dto.Login == null) throw new ArgumentNullException(nameof(dto.Login));
+            if (dto.Password == null) throw new ArgumentNullException(nameof(dto.Password));
             await using var context = _context;
             var user = await context.Users.FirstOrDefaultAsync(x => x.Login == dto.Login);
 
             if (user == null) throw new NotFoundException(EntityType.USER);
             if (!VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt)) throw new AuthorizationException(ExceptionSubType.PASSWORD_INCORRECT);
+            
+            
 
             return new UserResponse
             {
