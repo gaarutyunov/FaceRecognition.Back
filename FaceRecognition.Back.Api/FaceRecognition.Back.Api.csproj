@@ -28,6 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="FRModels" />
       <Folder Include="Images" />
       <Folder Include="Migrations" />
     </ItemGroup>
